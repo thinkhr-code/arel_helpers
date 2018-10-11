@@ -1,0 +1,17 @@
+development:
+  adapter: postgresql
+  encoding: utf8
+  database: arel_helpers
+  pool: 5
+
+test:
+  adapter: postgresql
+  encoding: utf8
+  database: arel_helpers_test
+  pool: 5
+
+production:
+  adapter: postgresql
+  encoding: utf8
+  database: arel_helpers_production
+  pool: 5

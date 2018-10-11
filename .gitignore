@@ -1,0 +1,35 @@
+# Ignore bundler config
+/.bundle
+
+# Ignore config files
+/Procfile
+
+# Ignore all logfiles and tempfiles.
+/spec/dummy/log/*
+/spec/dummy/tmp/*
+/spec/dummy/public/*
+.rvmrc
+/coverage/*
+*.sublime-workspace
+*~
+*swp
+*swo
+*swn
+/.sass-cache
+rspec.verbose.txt
+/.rspec_status
+
+# Ignore generated YARD documentation
+/.yardoc
+/doc
+
+# Ignore ad hoc reports
+*.csv
+app/admin/reports/.DS_Store
+.DS_Store
+.vscode
+npm-debug.log
+untitled.sublime-project
+
+# Ignore all node_modules folders
+node_modules/
