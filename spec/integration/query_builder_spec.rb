@@ -3,16 +3,22 @@ require 'spec_helper_integration'
 # @NOTE This suite assumes we are using PG quoting and dates
 
 describe 'query builder spec' do
-  before :each do
-    Rails.cache.clear
-  end
-
   let(:klass) { Article }
   let(:helper) { klass.arel_helper }
   let(:arel_table) { klass.arel_table }
   let(:date_column) { :published_at }
   let(:current_date) { Date.today }
   let(:current_year) { current_date.year }
+
+  # 2018-09-12 23:59:59.999999
+  def format_pg_timestamp(date)
+    if date.strftime('%6N') == '000000'
+      date.strftime('%Y-%m-%d %H:%M:%S')
+    else
+      date.strftime('%Y-%m-%d %H:%M:%S.%6N')
+    end
+  end
+
 
   describe '#klass' do
     it 'should refer back to the associated class' do
@@ -140,7 +146,11 @@ describe 'query builder spec' do
     end
 
     it 'generates the correct SQL' do
-      expect(sum_expression.to_sql).to eq("\"articles\".\"published_at\" >= '#{ (Date.today - 30.days).rfc3339 }'")
+      now = Time.now
+      allow(Time).to receive(:now).and_return(now)
+      since_time = (now - 30.days).beginning_of_day.iso8601
+
+      expect(sum_expression.to_sql).to eq("\"articles\".\"published_at\" >= '#{ since_time }'")
     end
   end
 
@@ -184,15 +194,14 @@ describe 'query builder spec' do
   end
 
   describe '#earlier_entries' do
-    let(:date_expression) { helper.earlier_entries date_column, 30.days.ago.to_date, 15 }
+    let(:date) { 30.days.ago.to_date }
+    let(:date_expression) { helper.earlier_entries date_column, date, 15 }
 
     it 'should return a proper node' do
       expect(date_expression).to be_a Arel::Nodes::Grouping
     end
 
     it 'generates the correct SQL' do
-      date = 30.days.ago.to_date.to_s
-
       expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" < '#{ date }' OR \"articles\".\"published_at\" = '#{ date }' AND \"articles\".\"id\" < 15)")
     end
   end
@@ -205,8 +214,10 @@ describe 'query builder spec' do
     end
 
     it 'should compile to valid SQL' do
-      # Because timestamps in PG are hard
-      expect(date_expression.to_sql).to include("\"articles\".\"published_at\" <= '#{ Date.today.to_s }")
+      date = Time.now
+      allow(Time).to receive(:now).and_return(date)
+
+      expect(date_expression.to_sql).to eq("\"articles\".\"published_at\" <= '#{ format_pg_timestamp(date) }'")
     end
   end
 
@@ -235,14 +246,15 @@ describe 'query builder spec' do
   end
 
   describe '#date_between' do
-    let(:date_expression) { helper.date_between date_column, 30.days.ago.to_date, Date.today }
+    let(:date) { 30.days.ago.to_date }
+    let(:date_expression) { helper.date_between date_column, date, Date.today }
 
     it 'should return a proper node' do
       expect(date_expression).to be_a Arel::Nodes::Between
     end
 
     it 'generates the correct SQL' do
-      min_date = 30.days.ago.to_date.to_s
+      min_date = date.to_s
       max_date = Date.today.to_s
 
       expect(date_expression.to_sql).to eq("\"articles\".\"published_at\" BETWEEN '#{ min_date }' AND '#{ max_date }'")
@@ -250,15 +262,14 @@ describe 'query builder spec' do
   end
 
   describe '#later_entries' do
-    let(:date_expression) { helper.later_entries date_column, 30.days.ago.to_date, 15 }
+    let(:date) { 30.days.ago.to_date }
+    let(:date_expression) { helper.later_entries date_column, date, 15 }
 
     it 'should return a proper node' do
       expect(date_expression).to be_a Arel::Nodes::Grouping
     end
 
     it 'generates the correct SQL' do
-      date = 30.days.ago.to_date.to_s
-
       expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" > '#{ date }' OR \"articles\".\"published_at\" = '#{ date }' AND \"articles\".\"id\" > 15)")
     end
   end
@@ -271,23 +282,79 @@ describe 'query builder spec' do
     end
 
     it 'generates the correct SQL' do
-      # Because timestamps in PG are hard
-      expect(date_expression.to_sql).to include("\"articles\".\"published_at\" >= '#{ Date.today.to_s }")
+      date = Time.now
+      allow(Time).to receive(:now).and_return(date)
+
+      expect(date_expression.to_sql).to eq("\"articles\".\"published_at\" >= '#{ format_pg_timestamp(date) }'")
     end
   end
 
   describe '#date_null_or_before' do
+    let(:date) { 30.days.ago }
+    let(:date_expression) { helper.date_null_or_before date_column, date }
+
+    it 'should return a proper node' do
+      expect(date_expression).to be_a Arel::Nodes::Grouping
+    end
+
+    it 'generates the correct SQL' do
+      expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" IS NULL OR \"articles\".\"published_at\" <= '#{ format_pg_timestamp(date) }')")
+    end
   end
 
   describe '#date_null_or_before_now' do
+    let(:date_expression) { helper.date_null_or_before_now date_column }
+
+    it 'should return a proper node' do
+      expect(date_expression).to be_a Arel::Nodes::Grouping
+    end
+
+    it 'generates the correct SQL' do
+      date = Time.now
+      allow(Time).to receive(:now).and_return(date)
+
+      expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" IS NULL OR \"articles\".\"published_at\" <= '#{ format_pg_timestamp(date) }')")
+    end
   end
 
   describe '#date_null_or_after' do
+    let(:date) { 30.days.ago }
+    let(:date_expression) { helper.date_null_or_after date_column, date }
+
+    it 'should return a proper node' do
+      expect(date_expression).to be_a Arel::Nodes::Grouping
+    end
+
+    it 'generates the correct SQL' do
+      expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" IS NULL OR \"articles\".\"published_at\" >= '#{ format_pg_timestamp(date) }')")
+    end
   end
 
   describe '#date_null_or_after_now' do
+    let(:date_expression) { helper.date_null_or_after_now date_column }
+
+    it 'should return a proper node' do
+      expect(date_expression).to be_a Arel::Nodes::Grouping
+    end
+
+    it 'generates the correct SQL' do
+      date = Time.now
+      allow(Time).to receive(:now).and_return(date)
+
+      expect(date_expression.to_sql).to eq("(\"articles\".\"published_at\" IS NULL OR \"articles\".\"published_at\" >= '#{ format_pg_timestamp(date) }')")
+    end
   end
 
   describe '#date_on_day' do
+    let(:date) { 30.days.ago }
+    let(:date_expression) { helper.date_on_day date_column, date }
+
+    it 'should return a proper node' do
+      expect(date_expression).to be_a Arel::Nodes::And
+    end
+
+    it 'generates the correct SQL' do
+      expect(date_expression.to_sql).to eq("\"articles\".\"published_at\" >= '#{ format_pg_timestamp(date.beginning_of_day) }' AND \"articles\".\"published_at\" <= '#{ format_pg_timestamp(date.end_of_day) }'")
+    end
   end
 end

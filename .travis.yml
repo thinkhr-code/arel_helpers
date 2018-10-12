@@ -2,4 +2,18 @@ sudo: false
 language: ruby
 rvm:
   - 2.4.2
-before_install: gem install bundler -v 1.16.0
+
+before_install: gem install bundler -v 1.13.7
+
+before_script:
+  - cd spec/dummy && bundle exec rake db:test:prepare
+
+script:
+  - bundle exec rake
+
+notifications:
+  email: false
+  slack:
+    rooms:
+      - mammoth-hr:l4mZwIEXoxBcUFiMUXKG3aVF
+    on_pull_requests: true

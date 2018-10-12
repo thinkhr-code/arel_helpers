@@ -52,7 +52,7 @@ module ArelHelpers
     end
 
     # @!group Expressions
-    # @TODO This is duplicated from somewhere..
+    # @TODO This is mostly the same as Arel::Nodes.build_text_array *items`
     # Cast an array to a PG array
     # @param [<String, Integer, Symbol>] items
     # @return [String]
@@ -115,7 +115,7 @@ module ArelHelpers
     def date_since(column, date)
       column = ensure_arel_attribute! column
 
-      since_time = ( Time.now - date ).beginning_of_day.iso8601
+      since_time = (Time.now - date).beginning_of_day.iso8601
 
       column.gteq since_time
     end
@@ -234,7 +234,7 @@ module ArelHelpers
 
     # @param [Symbol, String, Arel::Attribute] column
     # @param [Time] date
-    def f(column, date)
+    def date_on_day(column, date)
       column = ensure_arel_attribute! column
       parsed = ensure_time date
 

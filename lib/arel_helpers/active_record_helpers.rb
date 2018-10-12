@@ -1,4 +1,5 @@
 require_relative './query_builder'
+require 'dux'
 
 module ArelHelpers
   module ActiveRecordHelpers

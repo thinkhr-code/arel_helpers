@@ -51,7 +51,8 @@ CREATE TABLE public.ar_internal_metadata (
 
 CREATE TABLE public.articles (
     id integer NOT NULL,
-    published_at timestamp without time zone
+    published_at timestamp without time zone,
+    author_id character varying
 );
 
 
@@ -75,6 +76,35 @@ ALTER SEQUENCE public.articles_id_seq OWNED BY public.articles.id;
 
 
 --
+-- Name: authors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.authors (
+    id integer NOT NULL,
+    published_at timestamp without time zone
+);
+
+
+--
+-- Name: authors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.authors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: authors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.authors_id_seq OWNED BY public.authors.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -88,6 +118,13 @@ CREATE TABLE public.schema_migrations (
 --
 
 ALTER TABLE ONLY public.articles ALTER COLUMN id SET DEFAULT nextval('public.articles_id_seq'::regclass);
+
+
+--
+-- Name: authors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authors ALTER COLUMN id SET DEFAULT nextval('public.authors_id_seq'::regclass);
 
 
 --
@@ -107,6 +144,14 @@ ALTER TABLE ONLY public.articles
 
 
 --
+-- Name: authors authors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.authors
+    ADD CONSTRAINT authors_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -121,6 +166,7 @@ ALTER TABLE ONLY public.schema_migrations
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20181011163540');
+('20181011163540'),
+('20181012150256');
 
 
