@@ -357,4 +357,40 @@ describe 'query builder spec' do
       expect(date_expression.to_sql).to eq("\"articles\".\"published_at\" >= '#{ format_pg_timestamp(date.beginning_of_day) }' AND \"articles\".\"published_at\" <= '#{ format_pg_timestamp(date.end_of_day) }'")
     end
   end
+
+  describe '#arel_array_position_fn' do
+    let(:quoted) { false }
+
+    subject do
+      Article.order(
+        Article.arel_helper.arel_array_position_fn(
+          ['foo', 'bar', 'baz'],
+          Article.arel_table[:first],
+          quoted: quoted
+        )
+      ).to_sql
+    end
+
+    it 'generates the correct SQL' do
+      expect(subject).to eq('SELECT "articles".* FROM "articles" ORDER BY array_position(ARRAY[foo,bar,baz], "articles"."first")')
+    end
+
+    context 'when quoting' do
+      let(:quoted) { true }
+
+      it 'generates the correct SQL' do
+        expect(subject).to eq('SELECT "articles".* FROM "articles" ORDER BY array_position(ARRAY[\'foo\',\'bar\',\'baz\'], "articles"."first")')
+      end
+    end
+  end
+
+  describe '#arel_idx_fn' do
+    subject do
+      Article.order(Article.arel_helper.arel_idx_fn([1, 5, 10], Article.arel_table[:first])).to_sql
+    end
+
+    it 'generates the correct SQL' do
+      expect(subject).to eq('SELECT "articles".* FROM "articles" ORDER BY idx(ARRAY[1,5,10], "articles"."first")')
+    end
+  end
 end

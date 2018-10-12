@@ -245,6 +245,24 @@ module ArelHelpers
     end
     # @!endgroup
 
+
+    # @param [<Integer,String>] ids
+    # @param [Arel::Attribute] column
+    # @return [Arel::Nodes::NamedFunction('idx', (Arel::Nodes::SqlLiteral, Arel::Attribute))]
+    def arel_array_position_fn(ids, column, quoted: false)
+      if quoted
+        ids = ids.map { |id| Arel::Nodes.build_quoted(id).to_sql }
+      end
+      function 'array_position', [arel_ids_to_pg_array(ids), column]
+    end
+
+    # @param [<Integer>] ids
+    # @param [Arel::Attribute] column
+    # @return [Arel::Nodes::NamedFunction('idx', (Arel::Nodes::SqlLiteral, Arel::Attribute))]
+    def arel_idx_fn(ids, column = arel_table[:id])
+      function 'idx', [arel_ids_to_pg_array(ids), column]
+    end
+
     private
 
     # @param [Symbol, String, Arel::Attribute] column
@@ -287,6 +305,12 @@ module ArelHelpers
     def interval_from_now(string)
       quoted_interval = Arel::Nodes.build_quoted string
       Arel::Nodes::SqlLiteral.new "CURRENT_TIMESTAMP - INTERVAL #{ quoted_interval.to_sql }"
+    end
+
+    # @param [<Integer,String>] ids
+    # @return [Arel::Nodes::SqlLiteral]
+    def arel_ids_to_pg_array(ids)
+      Arel.sql 'ARRAY[%s]' % ( ids * ',' )
     end
 
     def map_strings_to_quoted_nodes(*args)
