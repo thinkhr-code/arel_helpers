@@ -12,5 +12,9 @@ module Dummy
     # -- all .rb files in that directory are automatically loaded.
 
     config.active_record.schema_format = :sql
+
+    ActiveSupport.on_load(:active_record) do
+      ArelHelpers.bootstrap!
+    end
   end
 end
