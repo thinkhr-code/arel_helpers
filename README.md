@@ -25,6 +25,15 @@ Or install it yourself as:
 
     $ gem install arel_helpers
 
+
+Add this to your `application.rb`
+
+```
+    ActiveSupport.on_load(:active_record) do
+      ArelHelpers.bootstrap!
+    end
+```
+
 ## Usage
 
 TODO: Write usage instructions here
