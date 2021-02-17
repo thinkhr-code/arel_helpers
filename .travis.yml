@@ -10,7 +10,6 @@ env:
     - CI_NODE_TOTAL=1
     - WITH_KNAPSACK=1
     - DEPLOY=0
-    - PRONTO_GITHUB_ACCESS_TOKEN=3f84e1e705bfd227b763b553e132083b0abce9de
   matrix:
     - LINTING=1
     - CI_NODE_INDEX=0
