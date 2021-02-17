@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'arel', '~> 7.1.4'
+  spec.add_dependency 'arel', '~> 9'
   spec.add_dependency 'dux'
 
   spec.add_development_dependency 'bundler', '~> 1.16'
@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'factory_girl', '~> 4.7.0'
   spec.add_development_dependency 'generator_spec', '~> 0.9.3'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'rspec-rails'
+  spec.add_development_dependency 'rspec-rails', '~> 3.8.0'
 end
