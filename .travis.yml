@@ -3,7 +3,23 @@ language: ruby
 rvm:
   - 2.4.2
 
-before_install: gem install bundler -v 1.13.7
+env:
+  global:
+    - PGPORT=5433
+    - RUBY_GC_MALLOC_LIMIT=50000000
+    - CI_NODE_TOTAL=1
+    - WITH_KNAPSACK=1
+    - DEPLOY=0
+    - PRONTO_GITHUB_ACCESS_TOKEN=3f84e1e705bfd227b763b553e132083b0abce9de
+  matrix:
+    - LINTING=1
+    - CI_NODE_INDEX=0
+
+git:
+  submodules: false
+
+before_install:
+  - gem install bundler -v 1.13.7
 
 before_script:
   - cd spec/dummy && bundle exec rake db:test:prepare
@@ -17,3 +33,14 @@ notifications:
     rooms:
       - mammoth-hr:l4mZwIEXoxBcUFiMUXKG3aVF
     on_pull_requests: true
+dist: trusty
+language: ruby
+services:
+  - docker
+
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
